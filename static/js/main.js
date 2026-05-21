@@ -925,14 +925,14 @@ function calcularTotalVenta() {
     }
 
     // 3. Limitar a los puntos necesarios para que el total sea 0 (evitar desperdiciar puntos)
-    const puntosNecesarios = Math.ceil(subtotal / 100);
+    const puntosNecesarios = Math.ceil(subtotal / 10);
     if (puntosRedimir > puntosNecesarios) {
         alert(`Solo necesitas redimir un máximo de ${puntosNecesarios} puntos para esta venta.`);
         document.getElementById('puntos-redimir').value = puntosNecesarios;
         puntosRedimir = puntosNecesarios;
     }
 
-    const descuento = puntosRedimir * 100;
+    const descuento = puntosRedimir * 10;
     const total = Math.max(0, subtotal - descuento);
     document.getElementById('total-venta').textContent = total.toLocaleString();
     
@@ -960,7 +960,7 @@ function confirmarVenta() {
     }
 
     const subtotal = itemsVenta.reduce((acc, item) => acc + item.cantidad * item.precio_unitario, 0);
-    const descuento = puntosRedimir * 100;
+    const descuento = puntosRedimir * 10;
     const total = Math.max(0, subtotal - descuento);
 
     const data = {
@@ -1124,7 +1124,7 @@ function verFacturaHistorial(v) {
         puntos_ganados: v.puntos_ganados,
         puntos_antes: v.puntos_antes,
         puntos_redimidos: v.puntos_redimidos,
-        descuento: v.puntos_redimidos * 100,
+        descuento: v.puntos_redimidos * 10,
         efectivo_recibido: 0,
         cambio_devuelto: 0,
         es_historial: true

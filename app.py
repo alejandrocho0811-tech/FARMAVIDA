@@ -759,8 +759,8 @@ def agregar_venta():
 
         # Calcular subtotal para validar que no se rediman más puntos de los necesarios
         subtotal = sum(int(item["cantidad"]) * float(item["precio_unitario"]) for item in data["items"])
-        puntos_necesarios = int(subtotal / 100)
-        if subtotal % 100 != 0:
+        puntos_necesarios = int(subtotal / 10)
+        if subtotal % 10 != 0:
             puntos_necesarios += 1
 
         if puntos_redimidos > puntos_necesarios:
@@ -768,7 +768,7 @@ def agregar_venta():
             conexion.close()
             return {"ok": False, "mensaje": f"No se pueden redimir más puntos de los necesarios para esta venta ({puntos_necesarios} pts)."}
 
-        descuento = puntos_redimidos * 100
+        descuento = puntos_redimidos * 10
         total_calculado = max(0.0, subtotal - descuento)
         data["total"] = total_calculado
         puntos_ganados = int(total_calculado / 1000)
@@ -850,7 +850,7 @@ def agregar_venta():
             "items": data["items"],
             "total": data["total"],
             "puntos_redimidos": data.get("puntos_redimidos", 0),
-            "descuento": data.get("puntos_redimidos", 0) * 100,
+            "descuento": data.get("puntos_redimidos", 0) * 10,
             "usuario": session["usuario"]
         }
     except Exception as e:
