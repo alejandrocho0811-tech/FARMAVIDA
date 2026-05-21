@@ -907,13 +907,29 @@ function renderItemsVenta() {
 
 function calcularTotalVenta() {
     const subtotal = itemsVenta.reduce((acc, item) => acc + item.cantidad * item.precio_unitario, 0);
-    const puntosRedimir = parseInt(document.getElementById('puntos-redimir').value) || 0;
+    let puntosRedimir = parseInt(document.getElementById('puntos-redimir').value) || 0;
     const puntosDisponibles = parseInt(document.getElementById('venta-puntos-disponibles').value) || 0;
 
+    // 1. Evitar valores negativos
+    if (puntosRedimir < 0) {
+        alert('Los puntos a redimir no pueden ser negativos.');
+        document.getElementById('puntos-redimir').value = 0;
+        puntosRedimir = 0;
+    }
+
+    // 2. Limitar al máximo de puntos del cliente
     if (puntosRedimir > puntosDisponibles) {
         alert('No tienes suficientes puntos.');
         document.getElementById('puntos-redimir').value = puntosDisponibles;
-        return;
+        puntosRedimir = puntosDisponibles;
+    }
+
+    // 3. Limitar a los puntos necesarios para que el total sea 0 (evitar desperdiciar puntos)
+    const puntosNecesarios = Math.ceil(subtotal / 100);
+    if (puntosRedimir > puntosNecesarios) {
+        alert(`Solo necesitas redimir un máximo de ${puntosNecesarios} puntos para esta venta.`);
+        document.getElementById('puntos-redimir').value = puntosNecesarios;
+        puntosRedimir = puntosNecesarios;
     }
 
     const descuento = puntosRedimir * 100;

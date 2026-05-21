@@ -746,7 +746,32 @@ def agregar_venta():
         cursor.execute("SELECT puntos FROM clientes WHERE id = %s", (data["id_cliente"],))
         puntos_antes = cursor.fetchone()["puntos"]
 
-        puntos_ganados = int(float(data["total"]) / 1000)
+        puntos_redimidos = int(data.get("puntos_redimidos", 0))
+        if puntos_redimidos < 0:
+            cursor.close()
+            conexion.close()
+            return {"ok": False, "mensaje": "Los puntos a redimir no pueden ser negativos."}
+
+        if puntos_redimidos > puntos_antes:
+            cursor.close()
+            conexion.close()
+            return {"ok": False, "mensaje": f"El cliente no tiene suficientes puntos. Disponibles: {puntos_antes}"}
+
+        # Calcular subtotal para validar que no se rediman más puntos de los necesarios
+        subtotal = sum(int(item["cantidad"]) * float(item["precio_unitario"]) for item in data["items"])
+        puntos_necesarios = int(subtotal / 100)
+        if subtotal % 100 != 0:
+            puntos_necesarios += 1
+
+        if puntos_redimidos > puntos_necesarios:
+            cursor.close()
+            conexion.close()
+            return {"ok": False, "mensaje": f"No se pueden redimir más puntos de los necesarios para esta venta ({puntos_necesarios} pts)."}
+
+        descuento = puntos_redimidos * 100
+        total_calculado = max(0.0, subtotal - descuento)
+        data["total"] = total_calculado
+        puntos_ganados = int(total_calculado / 1000)
 
         for item in data["items"]:
             cursor2 = conexion.cursor(dictionary=True, buffered=True)
@@ -837,12 +862,62 @@ def modificar_cliente_venta():
     if "usuario" not in session:
         return redirect(url_for("login"))
     data = request.get_json()
+    id_venta = data.get("id_venta")
+    id_cliente_nuevo = data.get("id_cliente")
+    
     conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("UPDATE ventas SET id_cliente=%s WHERE id=%s", (data["id_cliente"], data["id_venta"]))
-    conexion.commit()
-    conexion.close()
-    return {"ok": True, "mensaje": "Cliente actualizado correctamente"}
+    try:
+        cursor = conexion.cursor(dictionary=True, buffered=True)
+        # 1. Obtener la venta actual
+        cursor.execute("SELECT id_cliente, puntos_ganados, puntos_redimidos FROM ventas WHERE id = %s", (id_venta,))
+        venta = cursor.fetchone()
+        
+        if not venta:
+            cursor.close()
+            conexion.close()
+            return {"ok": False, "mensaje": "La venta no existe"}
+            
+        id_cliente_antiguo = venta["id_cliente"]
+        puntos_ganados = venta["puntos_ganados"]
+        puntos_redimidos = venta["puntos_redimidos"]
+        
+        if id_cliente_antiguo != id_cliente_nuevo:
+            # 2. Revertir puntos del cliente antiguo
+            cursor.execute("UPDATE clientes SET puntos = puntos - %s + %s WHERE id = %s", 
+                           (puntos_ganados, puntos_redimidos, id_cliente_antiguo))
+            
+            # 3. Aplicar puntos al nuevo cliente (primero consultar sus puntos actuales)
+            cursor.execute("SELECT puntos FROM clientes WHERE id = %s", (id_cliente_nuevo,))
+            cliente_nuevo = cursor.fetchone()
+            if not cliente_nuevo:
+                cursor.close()
+                conexion.close()
+                return {"ok": False, "mensaje": "El nuevo cliente no existe"}
+                
+            puntos_antes_nuevo = cliente_nuevo["puntos"]
+            
+            # Validar si el nuevo cliente tiene suficientes puntos para la redención
+            if puntos_antes_nuevo < puntos_redimidos:
+                cursor.close()
+                conexion.close()
+                return {"ok": False, "mensaje": f"El nuevo cliente no tiene suficientes puntos para cubrir la redención de esta factura (Disponibles: {puntos_antes_nuevo})"}
+            
+            # Actualizar puntos del nuevo cliente
+            cursor.execute("UPDATE clientes SET puntos = puntos + %s - %s WHERE id = %s",
+                           (puntos_ganados, puntos_redimidos, id_cliente_nuevo))
+            
+            # 4. Actualizar la venta con el nuevo cliente y sus puntos_antes correspondientes
+            cursor.execute("UPDATE ventas SET id_cliente = %s, puntos_antes = %s WHERE id = %s",
+                           (id_cliente_nuevo, puntos_antes_nuevo, id_venta))
+            
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return {"ok": True, "mensaje": "Cliente y puntos actualizados correctamente"}
+    except Exception as e:
+        conexion.rollback()
+        conexion.close()
+        return {"ok": False, "mensaje": f"Error al modificar cliente: {str(e)}"}
 
 @app.route("/compras/modificar", methods=["POST"])
 def modificar_compra():
