@@ -1304,42 +1304,57 @@ function guardarModificacionCompra() {
 function mostrarFacturaVenta(data) {
     const ahora = new Date();
     document.getElementById('factura-numero').textContent = String(data.numero_factura).padStart(6, '0');
-    document.getElementById('factura-fecha').textContent = ahora.toLocaleDateString('es-CO');
+    document.getElementById('factura-fecha').textContent = ahora.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
     document.getElementById('factura-usuario').textContent = data.usuario;
     document.getElementById('factura-cliente-nombre').textContent = data.cliente.nombre;
     document.getElementById('factura-cliente-cedula').textContent = data.cliente.cedula;
     document.getElementById('factura-cliente-contacto').textContent = data.cliente.contacto;
-    document.getElementById('factura-puntos-ganados').textContent = data.puntos_ganados + ' pts';
 
+    // Puntos
     const puntosAntes = data.puntos_antes;
     const puntosDespues = puntosAntes + data.puntos_ganados - data.puntos_redimidos;
-    document.getElementById('factura-puntos-antes').textContent = puntosAntes + ' pts';
-    document.getElementById('factura-puntos-redimidos').textContent = data.puntos_redimidos + ' pts';
-    document.getElementById('factura-puntos-despues').textContent = puntosDespues + ' pts';
+    document.getElementById('factura-puntos-antes').textContent = puntosAntes;
+    document.getElementById('factura-puntos-ganados').textContent = '+' + data.puntos_ganados;
+    document.getElementById('factura-puntos-redimidos').textContent = '-' + data.puntos_redimidos;
+    document.getElementById('factura-puntos-despues').textContent = puntosDespues;
 
+    // Mostrar/ocultar línea de redimidos
+    const redimidosLi = document.getElementById('factura-redimidos-li');
+    if (redimidosLi) {
+        redimidosLi.style.display = data.puntos_redimidos > 0 ? 'block' : 'none';
+    }
+
+    // Items de la tabla
     const items = document.getElementById('factura-items');
     items.innerHTML = '';
+    let subtotalCalc = 0;
     data.items.forEach(item => {
-        const subtotal = item.cantidad * item.precio_unitario;
+        const lineTotal = item.cantidad * item.precio_unitario;
+        subtotalCalc += lineTotal;
         items.innerHTML += `
-            <tr style="border-bottom:1px solid #eee;">
-                <td style="padding:8px;">${item.nombre_producto}</td>
-                <td style="padding:8px; text-align:center;">${item.cantidad}</td>
-                <td style="padding:8px; text-align:right;">$${parseFloat(item.precio_unitario).toLocaleString()}</td>
-                <td style="padding:8px; text-align:right;">$${subtotal.toLocaleString()}</td>
+            <tr>
+                <td>${item.nombre_producto}</td>
+                <td style="text-align:right;">$${parseFloat(item.precio_unitario).toLocaleString()}</td>
+                <td style="text-align:center;">${item.cantidad}</td>
+                <td style="text-align:right;">$${lineTotal.toLocaleString()}</td>
             </tr>
         `;
     });
 
+    // Subtotal
+    document.getElementById('factura-subtotal').textContent = subtotalCalc.toLocaleString();
+
+    // Descuento
     if (data.descuento > 0) {
-        document.getElementById('factura-descuento-row').style.display = 'block';
+        document.getElementById('factura-descuento-row').style.display = 'flex';
         document.getElementById('factura-descuento').textContent = data.descuento.toLocaleString();
     } else {
         document.getElementById('factura-descuento-row').style.display = 'none';
     }
 
+    // Total
     document.getElementById('factura-total').textContent = parseFloat(data.total).toLocaleString();
-    
+
     // Detalle de pago (efectivo y cambio)
     const detallePago = document.getElementById('factura-pago-detalle');
     if (data.efectivo_recibido > 0 || !data.es_historial) {
@@ -1356,7 +1371,7 @@ function mostrarFacturaVenta(data) {
 function mostrarFacturaCompra(data) {
     const ahora = new Date();
     document.getElementById('orden-numero').textContent = String(data.numero_orden).padStart(6, '0');
-    document.getElementById('orden-fecha').textContent = ahora.toLocaleDateString('es-CO');
+    document.getElementById('orden-fecha').textContent = ahora.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
     document.getElementById('orden-usuario').textContent = data.usuario;
     document.getElementById('orden-proveedor-nombre').textContent = data.proveedor.nombre;
     document.getElementById('orden-proveedor-telefono').textContent = data.proveedor.telefono || '-';
@@ -1366,12 +1381,12 @@ function mostrarFacturaCompra(data) {
     items.innerHTML = '';
     data.items.forEach(item => {
         items.innerHTML += `
-            <tr style="border-bottom:1px solid #eee;">
-                <td style="padding:8px;">${item.nombre}</td>
-                <td style="padding:8px; text-align:center;">${item.cantidad}</td>
-                <td style="padding:8px; text-align:right;">$${parseFloat(item.precio_compra).toLocaleString()}</td>
-                <td style="padding:8px; text-align:right;">${item.fecha_vencimiento}</td>
-                <td style="padding:8px; text-align:right;">$${parseFloat(item.subtotal).toLocaleString()}</td>
+            <tr>
+                <td>${item.nombre}</td>
+                <td style="text-align:center;">${item.cantidad}</td>
+                <td style="text-align:right;">$${parseFloat(item.precio_compra).toLocaleString()}</td>
+                <td style="text-align:right;">${item.fecha_vencimiento}</td>
+                <td style="text-align:right;">$${parseFloat(item.subtotal).toLocaleString()}</td>
             </tr>
         `;
     });

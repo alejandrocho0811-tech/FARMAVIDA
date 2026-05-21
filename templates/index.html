@@ -916,82 +916,97 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-<!-- Factura de venta -->
+<!-- Factura de venta (Estilo Mockup Premium) -->
 <div id="modal-factura-venta" class="invoice-overlay">
     <div class="invoice-card">
-        <div class="invoice-header">
-            <div class="invoice-header-left">
-                <h2>FarmaVida</h2>
-                <p>Droguería y Farmacia — Salud a su alcance</p>
+        <!-- Cabecera -->
+        <div class="invoice-top-bar">
+            <div class="invoice-title-block">
+                <span class="main-title">FACTURA</span>
+                <div class="invoice-meta-sub">
+                    <span>Número <strong id="factura-numero"></strong></span>
+                    <span id="factura-fecha"></span>
+                </div>
             </div>
-            <div class="invoice-header-right">
-                <span class="invoice-number-label">Factura de Venta</span>
-                <span class="invoice-number-value">#<span id="factura-numero"></span></span>
+            <div class="invoice-logo-block">
+                <div class="logo-text">FarmaVida</div>
+                <div class="logo-sub">Droguería &amp; Farmacia</div>
             </div>
         </div>
+
+        <!-- Cuerpo -->
         <div class="invoice-body">
-            <div class="invoice-info-grid">
-                <div class="info-section">
-                    <h4>Información del Cliente</h4>
-                    <p><strong id="factura-cliente-nombre"></strong></p>
-                    <p>C.C. <span id="factura-cliente-cedula"></span></p>
-                    <p>Contacto: <span id="factura-cliente-contacto"></span></p>
-                </div>
-                <div class="info-section">
-                    <h4>Detalles de la Factura</h4>
-                    <p><strong>Fecha:</strong> <span id="factura-fecha"></span></p>
-                    <p><strong>Atendido por:</strong> <span id="factura-usuario"></span></p>
-                    <p><strong>Puntos ganados:</strong> <span id="factura-puntos-ganados"></span></p>
-                </div>
+            <!-- Datos del cliente -->
+            <div class="invoice-section-title">Datos del Cliente</div>
+            <div class="invoice-info-details">
+                <div><strong>Nombre:</strong> <span id="factura-cliente-nombre"></span></div>
+                <div><strong>Cédula:</strong> <span id="factura-cliente-cedula"></span></div>
+                <div><strong>Contacto:</strong> <span id="factura-cliente-contacto"></span></div>
+                <div><strong>Atendido por:</strong> <span id="factura-usuario"></span></div>
             </div>
+
+            <!-- Tabla de productos -->
             <div class="invoice-table-container">
                 <table class="invoice-table">
                     <thead>
                         <tr>
-                            <th>Producto</th>
+                            <th>Descripción</th>
+                            <th style="text-align:right;">Precio</th>
                             <th style="text-align:center;">Cant.</th>
-                            <th style="text-align:right;">Precio Unit.</th>
-                            <th style="text-align:right;">Subtotal</th>
+                            <th style="text-align:right;">Precio</th>
                         </tr>
                     </thead>
                     <tbody id="factura-items"></tbody>
                 </table>
             </div>
-            <div class="invoice-footer">
-                <div class="invoice-totals">
+
+            <!-- Totales y pago -->
+            <div class="invoice-totals-wrapper">
+                <!-- Izquierda: info de puntos y pago -->
+                <div class="invoice-payment-info">
+                    <div class="invoice-section-title">Programa de Puntos</div>
+                    <ul>
+                        <li>Puntos anteriores: <span class="pts-badge" id="factura-puntos-antes"></span></li>
+                        <li>Puntos ganados: <span class="pts-badge" id="factura-puntos-ganados"></span></li>
+                        <li id="factura-redimidos-li">Puntos redimidos: <span class="pts-badge" id="factura-puntos-redimidos"></span></li>
+                        <li>Saldo actual: <span class="pts-badge" id="factura-puntos-despues"></span></li>
+                    </ul>
+                </div>
+                <!-- Derecha: totales monetarios -->
+                <div class="invoice-totals-block">
                     <div class="total-row">
-                        <span>Puntos anteriores:</span>
-                        <span id="factura-puntos-antes"></span>
-                    </div>
-                    <div class="total-row">
-                        <span>Puntos redimidos:</span>
-                        <span id="factura-puntos-redimidos"></span>
-                    </div>
-                    <div class="total-row" id="factura-puntos-actuales-row">
-                        <span>Puntos actuales:</span>
-                        <span id="factura-puntos-despues"></span>
+                        <span>Subtotal</span>
+                        <span>$<span id="factura-subtotal">0</span></span>
                     </div>
                     <div class="total-row" id="factura-descuento-row" style="display:none;">
-                        <span>Descuento por puntos:</span>
-                        <span>-$<span id="factura-descuento"></span></span>
+                        <span>Desc. puntos</span>
+                        <span style="color:#b45309;">-$<span id="factura-descuento">0</span></span>
                     </div>
                     <div class="total-row grand-total">
-                        <span>Total a Pagar:</span>
-                        <span>$<span id="factura-total"></span></span>
+                        <span>TOTAL</span>
+                        <span>$<span id="factura-total">0</span></span>
                     </div>
                     <div id="factura-pago-detalle" class="invoice-payment-detail">
                         <div class="total-row">
-                            <span>Efectivo recibido:</span>
+                            <span>Efectivo</span>
                             <span>$<span id="factura-recibido">0</span></span>
                         </div>
                         <div class="total-row">
-                            <span>Cambio:</span>
-                            <span id="factura-cambio-valor">$<span id="factura-cambio">0</span></span>
+                            <span>Cambio</span>
+                            <span>$<span id="factura-cambio">0</span></span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Banner de pie -->
+        <div class="invoice-footer-banner">
+            <div>📍 FarmaVida — Salud a su alcance</div>
+            <div>📞 Contáctenos para más información</div>
+        </div>
+
+        <!-- Botones de acción -->
         <div class="invoice-actions">
             <button class="btn-invoice btn-invoice-print" onclick="imprimirFactura('factura-venta')">
                 <span>🖨️</span> Imprimir Factura
@@ -1003,38 +1018,41 @@
     </div>
 </div>
 
-<!-- Factura de compra -->
+<!-- Factura de compra (Estilo Mockup Premium) -->
 <div id="modal-factura-compra" class="invoice-overlay">
     <div class="invoice-card">
-        <div class="invoice-header">
-            <div class="invoice-header-left">
-                <h2>FarmaVida</h2>
-                <p>Droguería y Farmacia — Orden de Pedido</p>
+        <!-- Cabecera -->
+        <div class="invoice-top-bar">
+            <div class="invoice-title-block">
+                <span class="main-title">ORDEN</span>
+                <div class="invoice-meta-sub">
+                    <span>Número <strong id="orden-numero"></strong></span>
+                    <span id="orden-fecha"></span>
+                </div>
             </div>
-            <div class="invoice-header-right">
-                <span class="invoice-number-label">Orden de Compra</span>
-                <span class="invoice-number-value">#<span id="orden-numero"></span></span>
+            <div class="invoice-logo-block">
+                <div class="logo-text">FarmaVida</div>
+                <div class="logo-sub">Orden de Compra</div>
             </div>
         </div>
+
+        <!-- Cuerpo -->
         <div class="invoice-body">
-            <div class="invoice-info-grid">
-                <div class="info-section">
-                    <h4>Información del Proveedor</h4>
-                    <p><strong id="orden-proveedor-nombre"></strong></p>
-                    <p>Tel: <span id="orden-proveedor-telefono"></span></p>
-                    <p>Dir: <span id="orden-proveedor-direccion"></span></p>
-                </div>
-                <div class="info-section">
-                    <h4>Detalles de la Orden</h4>
-                    <p><strong>Fecha:</strong> <span id="orden-fecha"></span></p>
-                    <p><strong>Registrado por:</strong> <span id="orden-usuario"></span></p>
-                </div>
+            <!-- Datos del proveedor -->
+            <div class="invoice-section-title">Datos del Proveedor</div>
+            <div class="invoice-info-details">
+                <div><strong>Nombre:</strong> <span id="orden-proveedor-nombre"></span></div>
+                <div><strong>Teléfono:</strong> <span id="orden-proveedor-telefono"></span></div>
+                <div><strong>Dirección:</strong> <span id="orden-proveedor-direccion"></span></div>
+                <div><strong>Registrado por:</strong> <span id="orden-usuario"></span></div>
             </div>
+
+            <!-- Tabla de productos -->
             <div class="invoice-table-container">
                 <table class="invoice-table">
                     <thead>
                         <tr>
-                            <th>Producto</th>
+                            <th>Descripción</th>
                             <th style="text-align:center;">Cant.</th>
                             <th style="text-align:right;">Costo Unit.</th>
                             <th style="text-align:right;">Vencimiento</th>
@@ -1044,15 +1062,25 @@
                     <tbody id="orden-items"></tbody>
                 </table>
             </div>
-            <div class="invoice-footer">
-                <div class="invoice-totals">
+
+            <!-- Total -->
+            <div class="invoice-totals-wrapper" style="grid-template-columns: 1fr;">
+                <div class="invoice-totals-block" style="margin-left:auto; max-width:300px;">
                     <div class="total-row grand-total">
-                        <span>Total de Compra:</span>
+                        <span>TOTAL</span>
                         <span>$<span id="orden-total"></span></span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Banner de pie -->
+        <div class="invoice-footer-banner">
+            <div>📍 FarmaVida — Droguería & Farmacia</div>
+            <div>📞 Contáctenos para más información</div>
+        </div>
+
+        <!-- Botones de acción -->
         <div class="invoice-actions">
             <button class="btn-invoice btn-invoice-print" onclick="imprimirFactura('factura-compra')">
                 <span>🖨️</span> Imprimir Orden
