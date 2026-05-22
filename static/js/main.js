@@ -852,10 +852,13 @@ function buscarClienteVenta() {
                 document.getElementById('venta-cliente-nombre').textContent = data.cliente.nombre;
                 document.getElementById('venta-cliente-puntos').textContent = `Puntos disponibles: ${data.cliente.puntos}`;
                 document.getElementById('info-cliente-venta').style.display = 'block';
+                calcularTotalVenta();
             } else {
                 alert('Cliente no encontrado. Regístralo primero en el módulo de clientes.');
                 document.getElementById('info-cliente-venta').style.display = 'none';
                 document.getElementById('venta-id-cliente').value = '';
+                document.getElementById('venta-puntos-disponibles').value = '0';
+                calcularTotalVenta();
             }
         });
 }
@@ -907,32 +910,43 @@ function renderItemsVenta() {
 
 function calcularTotalVenta() {
     const subtotal = itemsVenta.reduce((acc, item) => acc + item.cantidad * item.precio_unitario, 0);
-    let puntosRedimir = parseInt(document.getElementById('puntos-redimir').value) || 0;
+    const puntosInput = document.getElementById('puntos-redimir');
+    const warningSpan = document.getElementById('puntos-warning');
+    
+    let puntosRedimir = parseInt(puntosInput.value) || 0;
     const puntosDisponibles = parseInt(document.getElementById('venta-puntos-disponibles').value) || 0;
-
-    // 1. Evitar valores negativos
-    if (puntosRedimir < 0) {
-        alert('Los puntos a redimir no pueden ser negativos.');
-        document.getElementById('puntos-redimir').value = 0;
-        puntosRedimir = 0;
-    }
-
-    // 2. Limitar al máximo de puntos del cliente
-    if (puntosRedimir > puntosDisponibles) {
-        alert('No tienes suficientes puntos.');
-        document.getElementById('puntos-redimir').value = puntosDisponibles;
-        puntosRedimir = puntosDisponibles;
-    }
-
-    // 3. Limitar a los puntos necesarios para que el total sea 0 (evitar desperdiciar puntos)
     const puntosNecesarios = Math.ceil(subtotal / 10);
-    if (puntosRedimir > puntosNecesarios) {
-        alert(`Solo necesitas redimir un máximo de ${puntosNecesarios} puntos para esta venta.`);
-        document.getElementById('puntos-redimir').value = puntosNecesarios;
-        puntosRedimir = puntosNecesarios;
+
+    let errorMsg = '';
+    let puntosEfectivos = puntosRedimir;
+
+    if (puntosInput.value !== '') {
+        if (puntosRedimir < 0) {
+            errorMsg = 'Los puntos no pueden ser negativos.';
+            puntosEfectivos = 0;
+        } else if (puntosRedimir > puntosDisponibles) {
+            errorMsg = `Solo tienes ${puntosDisponibles} puntos disponibles.`;
+            puntosEfectivos = puntosDisponibles;
+        } else if (puntosRedimir > puntosNecesarios) {
+            errorMsg = `Solo necesitas redimir un máximo de ${puntosNecesarios} puntos.`;
+            puntosEfectivos = puntosNecesarios;
+        }
+    } else {
+        puntosEfectivos = 0;
     }
 
-    const descuento = puntosRedimir * 10;
+    if (warningSpan) {
+        if (errorMsg) {
+            warningSpan.textContent = errorMsg;
+            warningSpan.style.display = 'block';
+            puntosInput.style.borderColor = '#d9534f';
+        } else {
+            warningSpan.style.display = 'none';
+            puntosInput.style.borderColor = '';
+        }
+    }
+
+    const descuento = puntosEfectivos * 10;
     const total = Math.max(0, subtotal - descuento);
     document.getElementById('total-venta').textContent = total.toLocaleString();
     
@@ -948,7 +962,7 @@ function quitarItemVenta(index) {
 function confirmarVenta() {
     const id_cliente = document.getElementById('venta-id-cliente').value;
     const id_usuario = document.getElementById('session-id-usuario').value;
-    const puntosRedimir = parseInt(document.getElementById('puntos-redimir').value) || 0;
+    const puntosRedimirInput = parseInt(document.getElementById('puntos-redimir').value) || 0;
 
     if (!id_cliente) {
         alert('Busca y selecciona un cliente primero.');
@@ -960,6 +974,24 @@ function confirmarVenta() {
     }
 
     const subtotal = itemsVenta.reduce((acc, item) => acc + item.cantidad * item.precio_unitario, 0);
+    const puntosDisponibles = parseInt(document.getElementById('venta-puntos-disponibles').value) || 0;
+    const puntosNecesarios = Math.ceil(subtotal / 10);
+
+    // Validar puntos en el envío
+    if (puntosRedimirInput < 0) {
+        alert('Los puntos a redimir no pueden ser negativos.');
+        return;
+    }
+    if (puntosRedimirInput > puntosDisponibles) {
+        alert(`El cliente no tiene suficientes puntos. Disponibles: ${puntosDisponibles}`);
+        return;
+    }
+    if (puntosRedimirInput > puntosNecesarios) {
+        alert(`Solo necesitas redimir un máximo de ${puntosNecesarios} puntos para esta venta.`);
+        return;
+    }
+
+    const puntosRedimir = puntosRedimirInput;
     const descuento = puntosRedimir * 10;
     const total = Math.max(0, subtotal - descuento);
 
@@ -1004,7 +1036,17 @@ function limpiarVenta() {
     document.getElementById('venta-cedula').value = '';
     document.getElementById('venta-id-cliente').value = '';
     document.getElementById('venta-puntos-disponibles').value = '0';
-    document.getElementById('puntos-redimir').value = '';
+    
+    const puntosInput = document.getElementById('puntos-redimir');
+    puntosInput.value = '';
+    puntosInput.style.borderColor = '';
+    
+    const warningSpan = document.getElementById('puntos-warning');
+    if (warningSpan) {
+        warningSpan.textContent = '';
+        warningSpan.style.display = 'none';
+    }
+    
     document.getElementById('venta-efectivo').value = '';
     document.getElementById('venta-cambio').textContent = '0';
     itemsVenta = [];
