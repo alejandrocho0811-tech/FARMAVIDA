@@ -19,10 +19,33 @@ function mostrarModulo(modulo) {
         if (modulo === 'inicio') cargarInicio();
         if (modulo === 'reportes') cargarReportes();
     }
+    // Actualizar título en topbar
+    const titulos = {
+        inicio: 'Inicio', productos: 'Productos', inventario: 'Inventario',
+        ventas: 'Ventas', compras: 'Compras', usuarios: 'Usuarios',
+        clientes: 'Clientes', reportes: 'Reportes'
+    };
+    const topbarTitle = document.getElementById('topbar-title');
+    if (topbarTitle) topbarTitle.textContent = titulos[modulo] || modulo;
+    // Marcar ítem activo en sidebar
+    document.querySelectorAll('#sidebar ul li').forEach(li => li.classList.remove('activo'));
+    const liActivo = document.querySelector(`#sidebar ul li[data-modulo="${modulo}"]`);
+    if (liActivo) liActivo.classList.add('activo');
+    // Cerrar menú móvil si está abierto
+    document.getElementById('sidebar')?.classList.remove('abierto');
+    document.getElementById('overlay-menu')?.classList.remove('activo');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     inicializarTema();
+    // Inicializar fecha en topbar
+    const topbarDate = document.getElementById('topbar-date');
+    if (topbarDate) {
+        const ahora = new Date();
+        topbarDate.textContent = ahora.toLocaleDateString('es-CO', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    }
     mostrarModulo('inicio');
     cargarInventario();
     cargarProductosVenta();
@@ -108,24 +131,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function inicializarTema() {
     const temaGuardado = localStorage.getItem('farmavida_tema');
-    if (temaGuardado === 'dark') {
-        document.body.classList.add('dark-mode');
+    // Modo oscuro por defecto; light-mode se activa solo si el usuario eligió claro
+    if (temaGuardado === 'light') {
+        document.body.classList.add('light-mode');
+    } else {
+        document.body.classList.remove('light-mode');
     }
+    document.body.classList.remove('dark-mode');
     actualizarTextoBotonTema();
 }
 
 function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const esOscuro = document.body.classList.contains('dark-mode');
-    localStorage.setItem('farmavida_tema', esOscuro ? 'dark' : 'light');
+    const esClaro = document.body.classList.toggle('light-mode');
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('farmavida_tema', esClaro ? 'light' : 'dark');
     actualizarTextoBotonTema();
 }
 
 function actualizarTextoBotonTema() {
     const btn = document.getElementById('btn-dark-mode');
     if (!btn) return;
-    const esOscuro = document.body.classList.contains('dark-mode');
-    btn.textContent = esOscuro ? '☀️' : '🌙';
+    const esClaro = document.body.classList.contains('light-mode');
+    btn.innerHTML = esClaro ? '<i class="ti ti-moon"></i>' : '<i class="ti ti-sun"></i>';
 }
 
 // =================== PRODUCTOS ===================
@@ -1751,7 +1778,7 @@ window.graficaVentas = new Chart(canvas, {
         datasets: [{
             label: 'Ventas ($)',
             data: montos,
-            backgroundColor: '#1a6b4a',
+            backgroundColor: '#2d6a4f',
             borderRadius: 6
         }]
     },
@@ -1955,7 +1982,7 @@ function cargarReporteEjecutivo() {
                 type: 'bar',
                 data: {
                     labels,
-                    datasets: [{ data: montos, backgroundColor: '#1a6b4a', borderRadius: 6 }]
+                    datasets: [{ data: montos, backgroundColor: '#2d6a4f', borderRadius: 6 }]
                 },
                 options: {
                     responsive: true,
@@ -2009,13 +2036,32 @@ function cargarReporteVentas() {
                     datasets: [{
                         label: 'Ventas',
                         data: montos,
-                        borderColor: '#1a6b4a',
-                        backgroundColor: 'rgba(26, 107, 74, 0.2)',
+                        borderColor: '#2d6a4f',
+                        backgroundColor: 'rgba(45,106,79,0.18)',
                         fill: true,
-                        tension: 0.3
+                        tension: 0.4,
+                        pointBackgroundColor: '#2d6a4f',
+                        pointRadius: 4
                     }]
                 },
-                options: { responsive: true }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { color: document.body.classList.contains('light-mode') ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)' },
+                            ticks: { color: document.body.classList.contains('light-mode') ? '#4a6b55' : '#7a9a82' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: document.body.classList.contains('light-mode') ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)' },
+                            ticks: {
+                                color: document.body.classList.contains('light-mode') ? '#4a6b55' : '#7a9a82',
+                                callback: v => '$' + v.toLocaleString()
+                            }
+                        }
+                    }
+                }
             });
         });
 }
