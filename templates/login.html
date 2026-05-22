@@ -3,66 +3,618 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FarmaVida — Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>FarmaVida — Iniciar Sesión</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS RESET & CUSTOM PROPERTIES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2d6a4f;
+            --primary-hover: #1b4332;
+            --primary-glow: rgba(45, 106, 79, 0.15);
+            
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --input-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.06);
+            --transition-speed: 0.3s;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a2e;
+            --card-bg: #2a2a3e;
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #3f3f5f;
+            --input-bg: #202030;
+            --shadow-color: rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+        }
+
+        /* LAYOUT - SPLIT SCREEN */
+        .login-wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* LEFT SIDE - FORM */
+        .login-form-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            background-color: var(--bg-color);
+            transition: background-color var(--transition-speed) ease;
+        }
+
+        /* RIGHT SIDE - BRAND BANNER */
+        .login-brand-side {
+            flex: 1;
+            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 12s ease infinite;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px;
+            position: relative;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        /* BRAND CONTENT */
+        .brand-side-content {
+            max-width: 480px;
+            z-index: 2;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background-color: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .brand-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .brand-title .highlight {
+            color: #a7f3d0;
+        }
+
+        .brand-subtitle {
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 400;
+        }
+
+        /* FORM CARD */
+        .login-card-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            transition: all var(--transition-speed) ease;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(45, 106, 79, 0.2);
+        }
+
+        .brand-header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .form-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        /* INPUT GROUPS */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px 14px 46px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.8;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .input-icon-left {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            transition: color 0.25s ease;
+            pointer-events: none;
+        }
+
+        .input-group input:focus ~ .input-icon-left {
+            color: var(--primary-color);
+        }
+
+        /* PASSWORD TOGGLE */
+        .btn-password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            transition: color 0.25s ease;
+        }
+
+        .btn-password-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        /* BUTTON SUBMIT */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 106, 79, 0.35);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* THEME TOGGLE */
+        .theme-toggle-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            z-index: 10;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 16px var(--shadow-color);
+        }
+
+        /* ERROR ALERT */
+        .error-alert {
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .error-alert svg {
+            flex-shrink: 0;
+        }
+
+        /* DECORATIVE BACKGROUND OBJECTS (BRAND SIDE) */
+        .decor-shape {
+            position: absolute;
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 1.5;
+            pointer-events: none;
+        }
+
+        .decor-shape-1 {
+            top: 10%;
+            right: 12%;
+            width: 130px;
+            height: 130px;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        .decor-shape-2 {
+            bottom: 12%;
+            left: 10%;
+            width: 90px;
+            height: 90px;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+
+        .decor-shape-3 {
+            top: 50%;
+            right: 20%;
+            width: 70px;
+            height: 70px;
+            animation: pulse 5s ease-in-out infinite;
+        }
+
+        /* KEYFRAME ANIMATIONS */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(8deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.1; }
+            50% { transform: scale(1.12); opacity: 0.25; }
+            100% { transform: scale(1); opacity: 0.1; }
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 900px) {
+            .login-wrapper {
+                flex-direction: column-reverse;
+            }
+
+            .login-brand-side {
+                flex: none;
+                padding: 40px 24px;
+                text-align: center;
+                align-items: center;
+                min-height: 220px;
+            }
+
+            .brand-badge {
+                margin-bottom: 12px;
+                padding: 4px 12px;
+                font-size: 11px;
+            }
+
+            .brand-title {
+                font-size: 28px;
+                margin-bottom: 10px;
+            }
+
+            .brand-subtitle {
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .login-form-side {
+                flex: 1;
+                padding: 32px 20px;
+                justify-content: flex-start;
+            }
+
+            .login-card-container {
+                padding: 24px;
+                border-radius: 20px;
+                box-shadow: none;
+                border: none;
+                background-color: transparent;
+            }
+
+            body.dark-mode .login-card-container, 
+            .login-card-container {
+                background-color: transparent;
+            }
+
+            .form-subtitle {
+                margin-bottom: 24px;
+            }
+
+            .theme-toggle-btn {
+                top: 16px;
+                right: 16px;
+                width: 38px;
+                height: 38px;
+            }
+
+            .decor-shape {
+                display: none;
+            }
+        }
+    </style>
 </head>
-<body class="login-body">
-    <div class="login-topbar">
-        <button id="btn-dark-mode-login" type="button" class="btn-dark-mode" onclick="toggleDarkModeLogin()">🌙</button>
-    </div>
+<body>
 
-    <div class="login-container">
-        <h1>FarmaVida</h1>
-        <p>Ingresa tus credenciales para continuar</p>
+    <div class="login-wrapper">
+        
+        <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+        <div class="login-form-side">
+            <!-- Botón Dark/Light Mode -->
+            <button id="btn-dark-mode-login" type="button" class="theme-toggle-btn" onclick="toggleDarkModeLogin()" aria-label="Cambiar tema de color">
+                <!-- Icono Sol (modo oscuro activo) -->
+                <svg id="theme-sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <!-- Icono Luna (modo claro activo) -->
+                <svg id="theme-moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
+            <!-- Tarjeta de Login -->
+            <div class="login-card-container">
+                <div class="brand-header">
+                    <div class="logo-box">
+                        <!-- Icono cruz médica / plus -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h1>FarmaVida</h1>
+                </div>
+                <p class="form-subtitle">Ingresa tus credenciales para continuar</p>
 
-        <form method="POST">
-            <input type="text" name="usuario" placeholder="Usuario" required>
-            <div class="password-input-wrap">
-                <input id="login-password" type="password" name="contraseña" placeholder="Contraseña" required>
-                <button id="btn-toggle-password" type="button" class="btn-password-toggle" onclick="toggleLoginPassword()" aria-label="Mostrar u ocultar contraseña"><svg id="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><svg id="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path></svg></button>
+                <!-- Mensaje de Error -->
+                {% if error %}
+                    <div class="error-alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span>{{ error }}</span>
+                    </div>
+                {% endif %}
+
+                <!-- Formulario -->
+                <form method="POST">
+                    <div class="input-group">
+                        <input type="text" name="usuario" placeholder="Usuario" required autocomplete="username">
+                        <!-- User SVG Icon -->
+                        <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+
+                    <div class="input-group">
+                        <input id="login-password" type="password" name="contraseña" placeholder="Contraseña" required autocomplete="current-password">
+                        <!-- Lock SVG Icon -->
+                        <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        
+                        <!-- Toggle Password Button -->
+                        <button id="btn-toggle-password" type="button" class="btn-password-toggle" onclick="toggleLoginPassword()" aria-label="Mostrar u ocultar contraseña">
+                            <!-- Eye Open Icon -->
+                            <svg id="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <!-- Eye Closed Icon -->
+                            <svg id="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <button class="btn-submit" type="submit">Ingresar</button>
+                </form>
             </div>
-            <button type="submit">Ingresar</button>
-        </form>
+        </div>
+
+        <!-- COLUMNA DERECHA: DECORATIVA -->
+        <div class="login-brand-side">
+            <!-- Medical Cross shape 1 -->
+            <svg class="decor-shape decor-shape-1" viewBox="0 0 24 24">
+                <path d="M12 2v20M2 12h20"/>
+            </svg>
+            <!-- Square pattern shape 2 -->
+            <svg class="decor-shape decor-shape-2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+            </svg>
+            <!-- Medical Cross shape 3 -->
+            <svg class="decor-shape decor-shape-3" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v8M8 12h8"/>
+            </svg>
+
+            <div class="brand-side-content">
+                <div class="brand-badge">Portal Web FarmaVida</div>
+                <h2 class="brand-title">Tu salud,<br><span class="highlight">nuestra misión</span></h2>
+                <p class="brand-subtitle">Gestión farmacéutica inteligente. Administra inventario, lotes, ventas y reportes en una plataforma rápida, moderna y de alta precisión.</p>
+            </div>
+        </div>
+
     </div>
 
+    <!-- LOGIC SCRIPTS -->
     <script>
-        function actualizarTextoBotonTemaLogin() {
-            const btn = document.getElementById('btn-dark-mode-login');
-            if (!btn) return;
+        // Password Visibility Toggle
+        function toggleLoginPassword() {
+            const input = document.getElementById('login-password');
+            const btn = document.getElementById('btn-toggle-password');
+            const openIcon = document.getElementById('icon-eye-open');
+            const closedIcon = document.getElementById('icon-eye-closed');
+            
+            if (!input || !btn) return;
+            
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            
+            openIcon.style.display = isPassword ? 'none' : 'block';
+            closedIcon.style.display = isPassword ? 'block' : 'none';
+            btn.setAttribute('aria-label', isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        }
+
+        // Theme Toggle Logic
+        function actualizarIconosTema() {
             const esOscuro = document.body.classList.contains('dark-mode');
-            btn.textContent = esOscuro ? '☀️' : '🌙';
+            const sunIcon = document.getElementById('theme-sun-icon');
+            const moonIcon = document.getElementById('theme-moon-icon');
+            
+            if (sunIcon && moonIcon) {
+                if (esOscuro) {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                } else {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                }
+            }
         }
 
         function inicializarTemaLogin() {
             const temaGuardado = localStorage.getItem('farmavida_tema');
             if (temaGuardado === 'dark') {
                 document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
             }
-            actualizarTextoBotonTemaLogin();
+            actualizarIconosTema();
         }
 
         function toggleDarkModeLogin() {
             document.body.classList.toggle('dark-mode');
             const esOscuro = document.body.classList.contains('dark-mode');
             localStorage.setItem('farmavida_tema', esOscuro ? 'dark' : 'light');
-            actualizarTextoBotonTemaLogin();
+            actualizarIconosTema();
         }
 
-        function toggleLoginPassword() {
-            const input = document.getElementById('login-password');
-            const btn = document.getElementById('btn-toggle-password');
-            if (!input || !btn) return;
-            const mostrar = input.type === 'password';
-            input.type = mostrar ? 'text' : 'password';
-            document.getElementById('icon-eye-open').style.display = mostrar ? 'none' : 'block';
-            document.getElementById('icon-eye-closed').style.display = mostrar ? 'block' : 'none';
-            btn.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
-        }
-
+        // Initialize theme on DOM Content Loaded
         document.addEventListener('DOMContentLoaded', inicializarTemaLogin);
     </script>
 </body>
