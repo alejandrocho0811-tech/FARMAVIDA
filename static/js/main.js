@@ -339,16 +339,24 @@ function editarProducto(id, nombre, id_categoria, id_proveedor, precio_venta, st
 
 function guardarProducto() {
     const id = document.getElementById('producto-id').value;
+    const stockMinimoRaw = document.getElementById('producto-stock-minimo').value;
+    const stockMinimo = parseInt(stockMinimoRaw, 10);
+
     const data = {
         id: id,
         nombre: document.getElementById('producto-nombre').value,
         id_categoria: document.getElementById('producto-categoria').value,
-        precio_venta: document.getElementById('producto-precio').value,
-        stock_minimo: document.getElementById('producto-stock-minimo').value
+        precio_venta: parseFloat(document.getElementById('producto-precio').value),
+        stock_minimo: isNaN(stockMinimo) ? 0 : stockMinimo
     };
 
     if (!data.nombre || !data.precio_venta) {
         alert('El nombre y el precio son obligatorios.');
+        return;
+    }
+
+    if (data.stock_minimo < 0) {
+        alert('El stock mínimo no puede ser negativo.');
         return;
     }
 
@@ -360,9 +368,16 @@ function guardarProducto() {
         body: JSON.stringify(data)
     })
     .then(res => res.json())
-    .then(() => {
+    .then(result => {
+        if (result.ok === false) {
+            alert(result.mensaje || 'Error al guardar el producto.');
+            return;
+        }
         cerrarFormProducto();
         cargarProductos();
+    })
+    .catch(() => {
+        alert('Error de conexión al guardar el producto.');
     });
 }
 

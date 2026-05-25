@@ -203,8 +203,13 @@ def agregar_producto():
         return redirect(url_for("login"))
     data = request.get_json()
     # Validate stock_minimo
-    if data.get("stock_minimo", 0) < 0:
+    try:
+        stock_minimo = int(data.get("stock_minimo", 0))
+    except (ValueError, TypeError):
+        stock_minimo = 0
+    if stock_minimo < 0:
         return {"mensaje": "El stock mínimo no puede ser negativo", "ok": False}, 400
+    data["stock_minimo"] = stock_minimo
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -221,8 +226,13 @@ def editar_producto():
         return redirect(url_for("login"))
     data = request.get_json()
     # Validate stock_minimo
-    if data.get("stock_minimo", 0) < 0:
+    try:
+        stock_minimo = int(data.get("stock_minimo", 0))
+    except (ValueError, TypeError):
+        stock_minimo = 0
+    if stock_minimo < 0:
         return {"mensaje": "El stock mínimo no puede ser negativo", "ok": False}, 400
+    data["stock_minimo"] = stock_minimo
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
