@@ -2169,15 +2169,137 @@ function exportarExcel(idTabla, nombreArchivo) {
         alert('No se encontró la tabla para exportar.');
         return;
     }
+
+    // 1. Obtener la información del reporte según el archivo para el encabezado corporativo
+    let tituloReporte = "Reporte General";
+    if (nombreArchivo.includes("Ejecutivo")) tituloReporte = "Reporte Ejecutivo de Ventas (Top Productos)";
+    else if (nombreArchivo.includes("Ventas")) tituloReporte = "Reporte Detallado de Ventas";
+    else if (nombreArchivo.includes("Inventario")) tituloReporte = "Reporte de Inventario de Productos";
+    else if (nombreArchivo.includes("Rentabilidad")) tituloReporte = "Reporte de Rentabilidad y Margen";
+
+    // 2. Generar el arreglo de datos (AOA - Array of Arrays)
+    const datos = [];
+
+    // Agregar Banner Corporativo Profesional
+    datos.push(["FARMAVIDA - SISTEMA DE GESTIÓN DE FARMACIA"]);
+    datos.push([tituloReporte.toUpperCase()]);
     
-    // Crear un libro de trabajo y una hoja a partir de la tabla HTML
-    const wb = XLSX.utils.table_to_book(tabla, { sheet: "Reporte" });
-    
-    // Generar la fecha actual para el nombre del archivo
     const hoy = new Date();
-    const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-    const nombreFinal = `${nombreArchivo}_${fecha}.xlsx`;
+    const fechaHora = hoy.toLocaleDateString('es-CO') + ' ' + hoy.toLocaleTimeString('es-CO');
+    datos.push([`Generado el: ${fechaHora}`]);
+    datos.push([]); // Fila vacía de separación
+
+    // Obtener cabeceras de la tabla
+    const cabeceras = [];
+    const ths = tabla.querySelectorAll('thead th');
+    ths.forEach(th => {
+        cabeceras.push(th.textContent.trim().toUpperCase());
+    });
+    datos.push(cabeceras);
+
+    // Obtener filas de la tabla
+    const filasHtml = tabla.querySelectorAll('tbody tr');
+    filasHtml.forEach(tr => {
+        const filaDatos = [];
+        const tds = tr.querySelectorAll('td');
+        tds.forEach(td => {
+            let texto = td.textContent.trim();
+            filaDatos.push(texto);
+        });
+        // Solo agregar filas si tienen contenido y no son la fila de "Sin resultados"
+        if (filaDatos.length > 0 && filaDatos[0] !== "SIN RESULTADOS" && !filaDatos.join('').includes("Sin resultados")) {
+            datos.push(filaDatos);
+        }
+    });
+
+    // 3. Crear hoja de cálculo a partir del AOA (Array of Arrays)
+    const ws = XLSX.utils.aoa_to_sheet(datos);
+
+    // 4. Formatear y profesionalizar celdas individuales
+    const rango = XLSX.utils.decode_range(ws['!ref']);
     
-    // Descargar el archivo
+    // Anchos de columna automáticos
+    const anchosColumnas = [];
+    for (let c = 0; c <= rango.e.c; c++) {
+        anchosColumnas.push({ wch: 15 }); // Ancho mínimo inicial
+    }
+
+    // Función para limpiar y parsear números formateados en es-CO
+    function limpiarNumeroES(texto) {
+        let limpio = texto.replace(/[$\s%]/g, '').trim();
+        limpio = limpio.replace(/\./g, '').replace(',', '.');
+        return parseFloat(limpio);
+    }
+
+    // Recorrer todas las celdas de la hoja para formatear números, monedas, porcentajes
+    for (let r = 0; r <= rango.e.r; r++) {
+        for (let c = 0; c <= rango.e.c; c++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
+            const cell = ws[cellAddress];
+            if (!cell || cell.v === undefined) continue;
+
+            const valorStr = String(cell.v).trim();
+            
+            // Calcular ancho óptimo de la columna basado en el largo del texto
+            const longVal = valorStr.length;
+            if (longVal > anchosColumnas[c].wch) {
+                anchosColumnas[c].wch = Math.min(longVal + 4, 45); // Margen extra de 4 caracteres, máximo 45
+            }
+
+            // Omitir las primeras filas de metadatos (banner de título)
+            if (r < 4) {
+                continue;
+            }
+
+            // Omitir cabecera (Fila 4 en índice base 0)
+            if (r === 4) {
+                continue;
+            }
+
+            // Expresión regular robusta para detectar números formateados en es-CO
+            const esNumerico = /^-?\$?\s*-?(\d{1,3}(\.\d{3})*|\d+)(,\d+)?\s*%?$/.test(valorStr);
+
+            if (esNumerico) {
+                const valorNum = limpiarNumeroES(valorStr);
+                if (!isNaN(valorNum)) {
+                    cell.t = 'n'; // Declarar explícitamente tipo número en Excel
+                    
+                    if (valorStr.startsWith('$')) {
+                        cell.v = valorNum;
+                        cell.z = '"$"#,##0'; // Formato nativo de moneda (pesos)
+                    } else if (valorStr.endsWith('%')) {
+                        cell.v = valorNum / 100.0;
+                        cell.z = '0.00%'; // Formato nativo de porcentaje
+                    } else if (valorStr.includes(',')) {
+                        cell.v = valorNum;
+                        cell.z = '#,##0.00'; // Formato decimal genérico
+                    } else {
+                        cell.v = valorNum;
+                        cell.z = '#,##0'; // Formato entero con separadores de miles
+                    }
+                }
+            }
+        }
+    }
+
+    // 5. Aplicar anchos automáticos calculados
+    ws['!cols'] = anchosColumnas;
+
+    // 6. Combinar celdas (merge) del banner de cabecera corporativa para un look profesional
+    ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: Math.max(rango.e.c, 3) } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: Math.max(rango.e.c, 3) } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: Math.max(rango.e.c, 3) } }
+    ];
+
+    // 7. Crear el libro de trabajo e insertar la hoja profesionalizada
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+
+    // Generar el nombre de archivo final con la fecha del día
+    const finalFecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    const nombreFinal = `${nombreArchivo}_${finalFecha}.xlsx`;
+
+    // Exportar y descargar
     XLSX.writeFile(wb, nombreFinal);
 }
