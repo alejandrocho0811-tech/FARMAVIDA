@@ -925,6 +925,7 @@ table tbody tr:hover td {
 
 /* ===================== INPUTS GLOBALES ===================== */
 input, select, textarea {
+    padding: 8px 12px;
     background: var(--input-bg);
     color: var(--input-text);
     border: 1px solid var(--input-border);
