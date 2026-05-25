@@ -933,6 +933,11 @@ input, select, textarea {
     transition: border-color var(--transition), box-shadow var(--transition), background-color var(--transition);
 }
 
+select option {
+    background-color: var(--card-bg);
+    color: var(--text1);
+}
+
 input::placeholder, textarea::placeholder { color: var(--text2); opacity: 0.7; }
 
 input:-webkit-autofill,
