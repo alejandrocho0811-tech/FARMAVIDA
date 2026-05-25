@@ -202,12 +202,15 @@ def agregar_producto():
     if "usuario" not in session:
         return redirect(url_for("login"))
     data = request.get_json()
+    # Validate stock_minimo
+    if data.get("stock_minimo", 0) < 0:
+        return {"mensaje": "El stock mínimo no puede ser negativo", "ok": False}, 400
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
     INSERT INTO productos (nombre, id_categoria, precio_venta, stock_minimo)
     VALUES (%s, %s, %s, %s)
-""", (data["nombre"], data["id_categoria"], data["precio_venta"], data["stock_minimo"]))
+    """, (data["nombre"], data["id_categoria"], data["precio_venta"], data["stock_minimo"]))
     conexion.commit()
     conexion.close()
     return {"mensaje": "Producto agregado correctamente"}
@@ -217,12 +220,15 @@ def editar_producto():
     if "usuario" not in session:
         return redirect(url_for("login"))
     data = request.get_json()
+    # Validate stock_minimo
+    if data.get("stock_minimo", 0) < 0:
+        return {"mensaje": "El stock mínimo no puede ser negativo", "ok": False}, 400
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
     UPDATE productos SET nombre=%s, id_categoria=%s, 
     precio_venta=%s, stock_minimo=%s WHERE id=%s
-""", (data["nombre"], data["id_categoria"], data["precio_venta"], data["stock_minimo"], data["id"]))
+    """, (data["nombre"], data["id_categoria"], data["precio_venta"], data["stock_minimo"], data["id"]))
     conexion.commit()
     conexion.close()
     return {"mensaje": "Producto actualizado correctamente"}
