@@ -321,6 +321,12 @@ function abrirFormProducto() {
     document.getElementById('producto-precio').value = '';
     document.getElementById('producto-stock-minimo').value = '';
     document.getElementById('form-producto').style.display = 'block';
+    
+    // Desplazar suavemente hacia arriba
+    const wrapper = document.querySelector('.modulos-wrapper');
+    if (wrapper) {
+        wrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 function cerrarFormProducto() {
@@ -335,6 +341,12 @@ function editarProducto(id, nombre, id_categoria, id_proveedor, precio_venta, st
     document.getElementById('producto-precio').value = precio_venta;
     document.getElementById('producto-stock-minimo').value = stock_minimo;
     document.getElementById('form-producto').style.display = 'block';
+    
+    // Desplazar suavemente hacia arriba
+    const wrapper = document.querySelector('.modulos-wrapper');
+    if (wrapper) {
+        wrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 function guardarProducto() {
